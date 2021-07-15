@@ -1,3 +1,16 @@
+#################################################################################
+# The Institute for the Design of Advanced Energy Systems Integrated Platform
+# Framework (IDAES IP) was produced under the DOE Institute for the
+# Design of Advanced Energy Systems (IDAES), and is copyright (c) 2018-2021
+# by the software owners: The Regents of the University of California, through
+# Lawrence Berkeley National Laboratory,  National Technology & Engineering
+# Solutions of Sandia, LLC, Carnegie Mellon University, West Virginia University
+# Research Corporation, et al.  All rights reserved.
+#
+# Please see the files COPYRIGHT.md and LICENSE.md for full copyright and
+# license information.
+#################################################################################
+
 """
 
 --case baseline620 - Turbine inlet temperature 893.15 K (620 C).
@@ -25,12 +38,11 @@ from idaes.generic_models.unit_models.pressure_changer import \
 
 from idaes.core.util.model_statistics import degrees_of_freedom
 from idaes.core.util.initialization import propagate_state
-# import sys
-# sys.path.append('../using_surrogate_properties')
-# from SCO2_properties_surrogate import SCO2ParameterBlock
 from idaes.generic_models.properties.swco2 import SWCO2ParameterBlock, htpx
 
 import idaes.logger as idaeslog
+
+__author__ = "Jaffer Ghouse"
 
 parser = argparse.ArgumentParser(description='Select case to simulate')
 parser.add_argument("--case",
@@ -358,9 +370,7 @@ print('Total recuperator heat duty = ',
 
 if args.optimize:
     # Optimization problem - maximize recuperation/ efficiency
-    # Optimize for split fractions of two splitters. Commented out code
-    # is full-scale optimization problem with more DOFs but needs some
-    # work.
+    # Optimize for split fractions of two splitters.
 
     # Objective - max efficiency
     m.obj = Objective(expr=m.cycle_efficiency, sense=maximize)
@@ -378,48 +388,10 @@ if args.optimize:
         m.net_power_min = Constraint(
             expr=m.net_cycle_power_output*1e-6 >= 690.2489)
 
-    # Unfix flue gas cooler temperature and bound Q to Qmax available
-    # m.fs.FG_cooler.outlet.enth_mol.unfix()
-
-    # m.fs.FG_temp_in = Constraint(
-    #     expr=m.fs.FG_cooler.control_volume.properties_in[0].temperature
-    #     <= 348.15)
-    # m.fs.FG_temp_out = Constraint(
-    #     expr=m.fs.FG_cooler.control_volume.properties_out[0].temperature
-    #     <= 483.15)
-
-    # m.fs.FG_cooler.heat_duty[:].setlb(0)
-    # m.fs.FG_cooler.heat_duty[:].setub(4.4044e+07)
-
     # Unfix bypass split fraction variables
     m.fs.splitter_1.split_fraction[0, "bypass"].unfix()
     m.fs.splitter_1.split_fraction[0, "bypass"].setlb(0.01)
     m.fs.splitter_1.split_fraction[0, "bypass"].setub(0.5)
-
-    # Unfix flow rate
-    # m.fs.boiler.inlet.flow_mol.unfix()
-    # m.fs.boiler.inlet.flow_mol.setlb(80e3)
-    # m.fs.boiler.inlet.flow_mol.setub(130e3)
-
-    # Unfix boiler outlet temperature
-    # m.fs.boiler.outlet.enth_mol.unfix()
-
-    # m.fs.boiler_temp_out = Constraint(
-    #     expr=m.fs.boiler.control_volume.properties_out[0].temperature <=
-    #     1033.15)
-
-    # Unfix boiler inlet temperature
-    # m.fs.boiler.inlet.enth_mol.unfix()
-
-    # m.fs.boiler_temp_in = Constraint(
-    #     expr=m.fs.boiler.control_volume.properties_in[0].temperature <=
-    #     1033.15)
-
-    # m.fs.pre_boiler.outlet.enth_mol.unfix()
-
-    # m.fs.pre_boiler_temp_out = Constraint(
-    #     expr=m.fs.boiler.control_volume.properties_in[0].temperature ==
-    #     m.fs.pre_boiler.control_volume.properties_out[0].temperature)
 
     # Splitter 2
     m.fs.splitter_2.split_fraction[0, "to_FG_cooler"].unfix()
@@ -452,20 +424,6 @@ if args.optimize:
             expr=m.fs.LTR_pseudo_shell.control_volume.properties_in[0].
             temperature - m.fs.LTR_pseudo_tube.control_volume.
             properties_out[0].temperature >= deltaTmin_LTR)
-
-    # Main compressor pressure ratio
-    # m.fs.main_compressor.ratioP.unfix()
-    # m.fs.main_compressor.ratioP.setlb(1)
-    # m.fs.main_compressor.ratioP.setub(4)
-
-    # # Bypass compressor pressure ratio
-    # m.fs.bypass_compressor.ratioP.unfix()
-    # m.fs.bypass_compressor.ratioP.setlb(1)
-    # m.fs.bypass_compressor.ratioP.setub(4)
-
-    # # Pressure constraint
-    # m.fs.pre_boiler_pressure_in = Constraint(
-    #     expr=m.fs.pre_boiler.inlet.pressure[0] >= 34.5e6)
 
     # Solve
     solve_status = solver.solve(m, tee=tee)

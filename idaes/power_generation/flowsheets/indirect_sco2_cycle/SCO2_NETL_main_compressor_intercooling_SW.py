@@ -1,3 +1,16 @@
+#################################################################################
+# The Institute for the Design of Advanced Energy Systems Integrated Platform
+# Framework (IDAES IP) was produced under the DOE Institute for the
+# Design of Advanced Energy Systems (IDAES), and is copyright (c) 2018-2021
+# by the software owners: The Regents of the University of California, through
+# Lawrence Berkeley National Laboratory,  National Technology & Engineering
+# Solutions of Sandia, LLC, Carnegie Mellon University, West Virginia University
+# Research Corporation, et al.  All rights reserved.
+#
+# Please see the files COPYRIGHT.md and LICENSE.md for full copyright and
+# license information.
+#################################################################################
+
 """
 SCO2 baslien cycle from the NETL report
 
@@ -24,16 +37,14 @@ from idaes.generic_models.unit_models import (Mixer, MomentumMixingType,
                                               Separator, HeatExchanger)
 from idaes.generic_models.unit_models.pressure_changer import \
     ThermodynamicAssumption
-# from idaes.unit_models.heat_exchanger import (delta_temperature_lmtd_callback,
-#                                               HeatExchangerFlowPattern)
 from idaes.core.util.model_statistics import degrees_of_freedom
 from idaes.core.util.initialization import propagate_state
-import sys
-sys.path.append('../using_surrogate_properties')
-from SCO2_properties_surrogate import SCO2ParameterBlock
-from idaes.generic_models.properties.swco2 import SWCO2ParameterBlock, StateVars, htpx
+from idaes.generic_models.properties.swco2 import SWCO2ParameterBlock, \
+    StateVars, htpx
 
 import idaes.logger as idaeslog
+
+__author__ = "Jaffer Ghouse"
 
 parser = argparse.ArgumentParser(description='Select case to simulate')
 parser.add_argument("--case",
@@ -149,16 +160,6 @@ m.fs.mixer = Mixer(default={"property_package": m.fs.properties,
                             # MomentumMixingType.equality,
                             "inlet_list": ["FG_out", "LTR_out", "bypass"]})
 
-# Not using for now; Instead using the common approach of two heater blocks
-# and connect the heat streams.
-
-# m.fs.LTR = HeatExchanger(
-#     default={'dynamic': False,
-#              'delta_temperature_callback': delta_temperature_lmtd_callback,
-#              'flow_pattern': HeatExchangerFlowPattern.countercurrent,
-#              'shell': {'property_package': m.fs.properties},
-#              'tube': {'property_package': m.fs.properties}})
-
 # # Connect the flowsheet
 m.fs.s01 = Arc(source=m.fs.boiler.outlet,
                destination=m.fs.turbine.inlet)
@@ -194,10 +195,10 @@ m.fs.s16 = Arc(source=m.fs.mixer.outlet,
                destination=m.fs.HTR_pseudo_tube.inlet)
 
 m.fs.boiler.inlet.flow_mol.fix(flow_mol)
-# m.fs.boiler.inlet.temperature.fix(685.15)
 m.fs.boiler.inlet.pressure.fix(34.51e6)
-m.fs.boiler.inlet.enth_mol.fix(htpx(T=boiler_inlet_temperature*units.K,
-                                    P=m.fs.boiler.inlet.pressure[0].value*units.Pa))
+m.fs.boiler.inlet.enth_mol.fix(
+    htpx(T=boiler_inlet_temperature*units.K,
+         P=m.fs.boiler.inlet.pressure[0].value*units.Pa))
 
 # m.fs.boiler.outlet.temperature.fix(893.15)  # Turbine inlet T = 620 C
 m.fs.boiler.deltaP.fix(-0.21e6)
